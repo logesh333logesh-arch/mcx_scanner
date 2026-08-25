@@ -100,13 +100,14 @@ def run_commodity(commodity_key: str, spot_instrument_key: str, instrument_rows)
     telegram_notify.send_telegram_message(full_message)
 
 
-# Map each commodity to its MCX spot/futures instrument_key.
-# TODO: fill these in from your Upstox instrument master (mcx_instruments.csv)
+# Map each commodity to its MCX futures instrument_key (used as spot/underlying
+# proxy for CPR + volume calculations). Filled in from Logesh's Aug 2026
+# MCX instrument master — update these when contracts roll to next month.
 SPOT_INSTRUMENT_KEYS = {
-    "CRUDEOIL": "MCX_FO|CRUDEOIL_SPOT_KEY_HERE",
-    "NATURALGAS": "MCX_FO|NATURALGAS_SPOT_KEY_HERE",
-    "GOLD": "MCX_FO|GOLD_SPOT_KEY_HERE",
-    "SILVER": "MCX_FO|SILVER_SPOT_KEY_HERE",
+    "CRUDEOIL": "MCX_FO|565899",     # CRUDEOIL26SEPFUT, expiry 2026-09-21, lot 100
+    "NATURALGAS": "MCX_FO|568245",   # NATURALGAS26SEPFUT, expiry 2026-09-25, lot 1250
+    "GOLD": "MCX_FO|563946",         # GOLDM26SEPFUT (Mini), expiry 2026-09-04, lot 100
+    "SILVER": "MCX_FO|471725",       # SILVER26SEPFUT, expiry 2026-09-04, lot 30
 }
 
 
