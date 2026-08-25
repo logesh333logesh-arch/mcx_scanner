@@ -105,4 +105,3 @@ if __name__ == "__main__":
         print("\n[DONE] Today's access_token is ready. Other scanner scripts can now run.")
     except Exception as e:
         print(f"[ERROR] Token exchange failed: {e}")
-      
