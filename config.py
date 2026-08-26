@@ -11,21 +11,33 @@ commodities, or strike counts WITHOUT touching the core logic.
 COMMODITIES = {
     "CRUDEOIL": {
         "upstox_symbol": "CRUDEOIL",
+        "instrument_master_name": "CRUDE OIL",  # Upstox instrument master uses a space for this one
+        "tradingsymbol_prefix": "CRUDEOIL",     # standard lot (excludes CRUDEOILM mini — see exclude below)
+        "tradingsymbol_exclude_prefix": "CRUDEOILM",
         "min_move_rupees": 10,     # min premium move from day-open strike price to trigger alert
         "strike_step": 50,         # typical MCX Crude Oil strike interval (verify against instrument master)
     },
     "NATURALGAS": {
         "upstox_symbol": "NATURALGAS",
+        "instrument_master_name": "NATURALGAS",
+        "tradingsymbol_prefix": "NATURALGAS",   # standard lot (NATGASMINI is the separate mini line)
+        "tradingsymbol_exclude_prefix": None,
         "min_move_rupees": 3,
         "strike_step": 5,
     },
     "GOLD": {
         "upstox_symbol": "GOLD",
+        "instrument_master_name": "GOLD",
+        "tradingsymbol_prefix": "GOLDM",         # Mini — per Logesh's confirmation
+        "tradingsymbol_exclude_prefix": None,
         "min_move_rupees": 20,
         "strike_step": 50,
     },
     "SILVER": {
         "upstox_symbol": "SILVER",
+        "instrument_master_name": "SILVER",
+        "tradingsymbol_prefix": "SILVER",       # standard lot (excludes SILVERM mini — see exclude below)
+        "tradingsymbol_exclude_prefix": "SILVERM",
         "min_move_rupees": 15,
         "strike_step": 100,
     },
