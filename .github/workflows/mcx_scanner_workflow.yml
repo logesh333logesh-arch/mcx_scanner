@@ -2,6 +2,17 @@
 # MCX runs 9:00 AM to 11:30/11:55 PM IST depending on session (US DST).
 # Cron below covers ~9:15 AM to 11:30 PM IST, every 15 min, Mon-Fri.
 # GitHub Actions cron is in UTC â€” IST = UTC+5:30.
+#
+# AUTH MODEL (same as Scanner-4):
+# manual_login.py needs a human to click through TOTP login, which can't
+# run inside GitHub Actions. So the daily flow is:
+#   1. Each morning (before market open), run `python manual_login.py`
+#      locally/Termux â€” this writes token.txt
+#   2. Commit + push token.txt to this repo (git add token.txt && git commit
+#      -m "token" && git push) â€” every scheduled run below just reads that
+#      already-generated token.txt, no login step needed in Actions.
+#   3. Repeat step 1-2 every trading day before market opens (token expires
+#      daily ~3:30 AM IST regardless of when it was generated).
 
 name: MCX Scanner (Scanner-3)
 
@@ -15,7 +26,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4   # pulls token.txt as committed this morning
 
       - uses: actions/setup-python@v5
         with:
@@ -23,19 +34,6 @@ jobs:
 
       - name: Install dependencies
         run: pip install requests
-
-      # NOTE: manual_login.py as written takes an interactive input() paste
-      # of the redirected URL/code â€” this step needs whatever automated
-      # TOTP + redirect-capture approach you're already using for Scanner-4
-      # (e.g. a headless browser script that logs in with UPSTOX_TOTP_SECRET
-      # and captures the code automatically). Swap this step for that script;
-      # the key requirement is that token.txt exists before the next step runs.
-      - name: Manual login (generate Upstox access token -> token.txt)
-        env:
-          UPSTOX_API_KEY: ${{ secrets.UPSTOX_API_KEY }}
-          UPSTOX_API_SECRET: ${{ secrets.UPSTOX_API_SECRET }}
-          UPSTOX_TOTP_SECRET: ${{ secrets.UPSTOX_TOTP_SECRET }}
-        run: python manual_login.py   # reuse your existing Scanner-4 automated-login variant here
 
       - name: Download instrument master
         run: |
