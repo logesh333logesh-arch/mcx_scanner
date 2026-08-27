@@ -2,12 +2,19 @@
 Telegram Notifier
 ==================
 Same pattern as your other scanners: bot token + chat id from env vars
-(set as GitHub Actions secrets), plain requests.post to sendMessage.
+(set as GitHub Actions secrets), requests.post to sendMessage — with
+retries + backoff since api.telegram.org occasionally times out on
+mobile/flaky connections (same issue seen on Scanner-4).
 """
 
 import os
+import time
 import requests
 import config
+
+MAX_ATTEMPTS = 4
+TIMEOUT_SECONDS = 30
+RETRY_BACKOFF_SECONDS = 3  # wait grows: 3s, 6s, 9s between attempts
 
 
 def send_telegram_message(text: str):
@@ -17,14 +24,26 @@ def send_telegram_message(text: str):
         raise RuntimeError("TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID not set")
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    resp = requests.post(url, data={
-        "chat_id": chat_id,
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": True,
-    }, timeout=15)
-    resp.raise_for_status()
-    return resp.json()
+    last_error = None
+
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            resp = requests.post(url, data={
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": "HTML",
+                "disable_web_page_preview": True,
+            }, timeout=TIMEOUT_SECONDS)
+            resp.raise_for_status()
+            return resp.json()
+        except requests.exceptions.RequestException as e:
+            last_error = e
+            if attempt < MAX_ATTEMPTS:
+                print(f"[WARN] Telegram send attempt {attempt} failed ({e}), retrying...")
+                time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+
+    print(f"[WARN] Telegram send failed after {MAX_ATTEMPTS} attempts: {last_error}")
+    raise last_error
 
 
 def format_strike_alert(commodity: str, symbol: str, option_type: str, strike: float,
@@ -52,4 +71,3 @@ def format_volume_alert(commodity: str, spike: dict) -> str:
         f"({spike['ratio']}x)\n"
         f"Direction: {spike['direction']}\n"
     )
-  
