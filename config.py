@@ -3,6 +3,10 @@ MCX Scanner (Scanner-3 MCX variant) — Configuration
 =====================================================
 All tunable constants live here. Edit this file to change thresholds,
 commodities, or strike counts WITHOUT touching the core logic.
+
+v2: Simplified per Logesh's request — CPR classification removed.
+Alerts are now pure premium-spike + spot-trend, matching the Scanner-2
+format. See mcx_scanner_main.py / telegram_notify.py.
 """
 
 # ---------------------------------------------------------------------------
@@ -15,7 +19,7 @@ COMMODITIES = {
         "tradingsymbol_prefix": "CRUDEOIL",     # standard lot (excludes CRUDEOILM mini — see exclude below)
         "tradingsymbol_exclude_prefix": "CRUDEOILM",
         "min_move_rupees": 10,     # min premium move from day-open strike price to trigger alert
-        "strike_step": 50,         # typical MCX Crude Oil strike interval (verify against instrument master)
+        "emoji": "🛢️",
     },
     "NATURALGAS": {
         "upstox_symbol": "NATURALGAS",
@@ -23,7 +27,7 @@ COMMODITIES = {
         "tradingsymbol_prefix": "NATURALGAS",   # standard lot (NATGASMINI is the separate mini line)
         "tradingsymbol_exclude_prefix": None,
         "min_move_rupees": 3,
-        "strike_step": 5,
+        "emoji": "🔥",
     },
     "GOLD": {
         "upstox_symbol": "GOLD",
@@ -31,7 +35,7 @@ COMMODITIES = {
         "tradingsymbol_prefix": "GOLDM",         # Mini — per Logesh's confirmation
         "tradingsymbol_exclude_prefix": None,
         "min_move_rupees": 20,
-        "strike_step": 50,
+        "emoji": "🥇",
     },
     "SILVER": {
         "upstox_symbol": "SILVER",
@@ -39,24 +43,21 @@ COMMODITIES = {
         "tradingsymbol_prefix": "SILVER",       # standard lot (excludes SILVERM mini — see exclude below)
         "tradingsymbol_exclude_prefix": "SILVERM",
         "min_move_rupees": 15,
-        "strike_step": 100,
+        "emoji": "🥈",
     },
 }
 
-# Number of OTM strikes on each side of the day's opening spot price
-STRIKES_PER_SIDE = 10   # -> 10 CE + 10 PE per commodity
+# Strikes tracked per side of the day's opening spot price
+STRIKES_PER_SIDE_OTM = 10   # 10 OTM CE + 10 OTM PE
+STRIKES_PER_SIDE_ITM = 5    # + 5 ITM CE + 5 ITM PE
+# -> 15 CE + 15 PE = 30 strikes tracked per commodity
 
 # MCX options are monthly expiry only (no weekly)
 EXPIRY_CYCLE = "monthly"
 
 # ---------------------------------------------------------------------------
-# CPR settings
+# Volume spike alert (index/spot level)
 # ---------------------------------------------------------------------------
-NARROW_CPR_LOOKBACK_DAYS = 14          # average CPR width lookback
-NARROW_CPR_THRESHOLD_PCT = 0.35        # today's width < 35% of avg width => Narrow
-WIDE_CPR_THRESHOLD_PCT = 1.5           # today's width > 150% of avg width => Wide
-
-# 18-day average volume lookback for the index/spot volume-spike alert
 VOLUME_AVG_LOOKBACK_DAYS = 18
 VOLUME_SPIKE_MULTIPLIER = 1.5          # today's volume > 1.5x the 18-day avg => spike
 
