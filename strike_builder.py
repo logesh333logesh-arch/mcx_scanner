@@ -2,8 +2,9 @@
 Strike Builder
 ==============
 Given the day's OPENING spot price of a commodity, picks:
-    - 10 OTM CE strikes (above spot)
-    - 10 OTM PE strikes (below spot)
+    - 10 OTM CE strikes (above spot) + 5 ITM CE strikes (below spot)
+    - 10 OTM PE strikes (below spot) + 5 ITM PE strikes (above spot)
+    -> 15 CE + 15 PE = 30 strikes per commodity
 
 Strikes are matched against the actual Upstox instrument master CSV
 (not just computed from strike_step) so we only ever alert on strikes
@@ -21,8 +22,9 @@ class OptionInstrument:
     instrument_key: str
     trading_symbol: str
     strike: float
-    option_type: str   # "CE" or "PE"
-    expiry: str         # ISO date string
+    option_type: str    # "CE" or "PE"
+    moneyness: str       # "OTM" or "ITM"
+    expiry: str          # ISO date string
 
 
 def load_instrument_master(path: str = config.INSTRUMENT_MASTER_PATH) -> List[dict]:
@@ -57,8 +59,13 @@ def nearest_expiry(rows: List[dict], instrument_master_name: str, min_strikes: i
 def build_strikes(commodity_key: str, day_open_spot: float,
                    instrument_rows: List[dict]) -> List[OptionInstrument]:
     """
-    Returns 10 OTM CE + 10 OTM PE OptionInstrument objects for the
-    nearest monthly expiry, centered on day_open_spot.
+    Returns 15 CE (10 OTM + 5 ITM) + 15 PE (10 OTM + 5 ITM) OptionInstrument
+    objects for the nearest monthly expiry, centered on day_open_spot.
+
+    Moneyness convention:
+      CE: strike ABOVE spot = OTM, strike BELOW spot = ITM
+      PE: strike BELOW spot = OTM, strike ABOVE spot = ITM
+
     commodity_key is the config.py key (e.g. 'CRUDEOIL') — this function
     looks up the actual instrument-master name to match against, and
     filters by tradingsymbol prefix since standard-lot and mini-lot
@@ -71,7 +78,9 @@ def build_strikes(commodity_key: str, day_open_spot: float,
     ts_exclude_prefix = cfg.get("tradingsymbol_exclude_prefix")
     expiry = nearest_expiry(instrument_rows, instrument_master_name)
 
-    calls, puts = [], []
+    calls_above, calls_below = [], []   # above spot = CE OTM, below spot = CE ITM
+    puts_below, puts_above = [], []     # below spot = PE OTM, above spot = PE ITM
+
     for r in instrument_rows:
         if r.get("name", "").upper() != instrument_master_name.upper():
             continue
@@ -87,26 +96,42 @@ def build_strikes(commodity_key: str, day_open_spot: float,
             strike = float(r.get("strike", 0))
         except ValueError:
             continue
-        if opt_type == "CE" and strike > day_open_spot:
-            calls.append((strike, r))
-        elif opt_type == "PE" and strike < day_open_spot:
-            puts.append((strike, r))
 
-    # OTM CE: 10 closest strikes ABOVE spot (ascending)
-    calls.sort(key=lambda x: x[0])
-    otm_calls = calls[:config.STRIKES_PER_SIDE]
+        if opt_type == "CE":
+            if strike > day_open_spot:
+                calls_above.append((strike, r))
+            elif strike < day_open_spot:
+                calls_below.append((strike, r))
+        elif opt_type == "PE":
+            if strike < day_open_spot:
+                puts_below.append((strike, r))
+            elif strike > day_open_spot:
+                puts_above.append((strike, r))
 
-    # OTM PE: 10 closest strikes BELOW spot (descending -> closest first)
-    puts.sort(key=lambda x: x[0], reverse=True)
-    otm_puts = puts[:config.STRIKES_PER_SIDE]
+    # CE OTM: 10 closest strikes ABOVE spot (ascending = closest first)
+    calls_above.sort(key=lambda x: x[0])
+    ce_otm = calls_above[:config.STRIKES_PER_SIDE_OTM]
+
+    # CE ITM: 5 closest strikes BELOW spot (descending = closest first)
+    calls_below.sort(key=lambda x: x[0], reverse=True)
+    ce_itm = calls_below[:config.STRIKES_PER_SIDE_ITM]
+
+    # PE OTM: 10 closest strikes BELOW spot (descending = closest first)
+    puts_below.sort(key=lambda x: x[0], reverse=True)
+    pe_otm = puts_below[:config.STRIKES_PER_SIDE_OTM]
+
+    # PE ITM: 5 closest strikes ABOVE spot (ascending = closest first)
+    puts_above.sort(key=lambda x: x[0])
+    pe_itm = puts_above[:config.STRIKES_PER_SIDE_ITM]
 
     result = []
-    for strike, r in otm_calls + otm_puts:
-        result.append(OptionInstrument(
-            instrument_key=r["instrument_key"],
-            trading_symbol=r["tradingsymbol"],
-            strike=strike,
-            option_type=r["option_type"].upper(),
-            expiry=expiry,
-        ))
+    for strike, r in ce_otm:
+        result.append(OptionInstrument(r["instrument_key"], r["tradingsymbol"], strike, "CE", "OTM", expiry))
+    for strike, r in ce_itm:
+        result.append(OptionInstrument(r["instrument_key"], r["tradingsymbol"], strike, "CE", "ITM", expiry))
+    for strike, r in pe_otm:
+        result.append(OptionInstrument(r["instrument_key"], r["tradingsymbol"], strike, "PE", "OTM", expiry))
+    for strike, r in pe_itm:
+        result.append(OptionInstrument(r["instrument_key"], r["tradingsymbol"], strike, "PE", "ITM", expiry))
     return result
+                     
