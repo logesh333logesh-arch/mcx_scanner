@@ -42,8 +42,13 @@ def run_commodity(commodity_key: str, spot_instrument_key: str, instrument_rows)
 
     # --- 3. Per-strike premium move check -> send alert immediately if it qualifies ---
     for inst in strikes:
-        day_open_premium = data_fetcher.get_day_open_price(inst.instrument_key)
-        current_premium = data_fetcher.get_live_ltp(inst.instrument_key)
+        try:
+            day_open_premium = data_fetcher.get_day_open_price(inst.instrument_key)
+            current_premium = data_fetcher.get_live_ltp(inst.instrument_key)
+        except Exception as e:
+            print(f"[{commodity_key}] skipping {inst.trading_symbol} (no data: {e})")
+            continue
+
         move = abs(current_premium - day_open_premium)
 
         if move < min_move:
