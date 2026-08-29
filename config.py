@@ -26,7 +26,7 @@ COMMODITIES = {
         "instrument_master_name": "NATURALGAS",
         "tradingsymbol_prefix": "NATURALGAS",   # standard lot (NATGASMINI is the separate mini line)
         "tradingsymbol_exclude_prefix": None,
-        "min_move_rupees": 3,
+        "min_move_rupees": 4.5,
         "emoji": "🔥",
     },
     "GOLD": {
@@ -34,7 +34,7 @@ COMMODITIES = {
         "instrument_master_name": "GOLD",
         "tradingsymbol_prefix": "GOLDM",         # Mini — per Logesh's confirmation
         "tradingsymbol_exclude_prefix": None,
-        "min_move_rupees": 30,
+        "min_move_rupees": 35,
         "emoji": "🥇",
     },
     "SILVER": {
@@ -42,13 +42,13 @@ COMMODITIES = {
         "instrument_master_name": "SILVER",
         "tradingsymbol_prefix": "SILVER",       # standard lot (excludes SILVERM mini — see exclude below)
         "tradingsymbol_exclude_prefix": "SILVERM",
-        "min_move_rupees": 25,
+        "min_move_rupees": 35,
         "emoji": "🥈",
     },
 }
 
 # Strikes tracked per side of the day's opening spot price
-STRIKES_PER_SIDE_OTM = 5   # 5 OTM CE + 5 OTM PE
+STRIKES_PER_SIDE_OTM = 5    # 5 OTM CE + 5 OTM PE
 STRIKES_PER_SIDE_ITM = 5    # + 5 ITM CE + 5 ITM PE
 # -> 10 CE + 10 PE = 20 strikes tracked per commodity
 
