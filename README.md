@@ -3,9 +3,9 @@
 ## என்ன பண்ணுது
 Crude Oil, Natural Gas, Gold, Silver — நான்கு MCX commodities-க்கும்:
 
-1. அன்றைக்கு market-open spot price base-ஆ 10 OTM CE + 10 OTM PE strikes தேர்ந்தெடுக்கும் (nearest monthly expiry)
+1. அன்றைக்கு market-open spot price base-ஆ 5 OTM CE + 5 OTM PE strikes தேர்ந்தெடுக்கும் (nearest monthly expiry)
 2. ஒவ்வொரு strike-ஓட premium-ம் day-open price-ல இருந்து எவ்வளவு move ஆச்சுன்னு பாக்கும்:
-   - Crude Oil ₹10, Natural Gas ₹3, Gold ₹20, Silver ₹15 — இதை தாண்டினா மட்டும் alert
+   - Crude Oil ₹25, Natural Gas ₹3, Gold ₹20, Silver ₹25 — இதை தாண்டினா மட்டும் alert
 3. Move ஆன strikes-க்கு Daily CPR (Pivot Boss classification) காட்டும்
 4. ஒவ்வொரு commodity-ஓட Spot-க்கும் Weekly CPR + Daily CPR காட்டும்
 5. Spot-ஓட Volume-ஐ 18-day average உடன் compare பண்ணி, spike ஆனா buying/selling direction-உடன் தனி அலர்ட்
