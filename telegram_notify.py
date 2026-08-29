@@ -18,6 +18,8 @@ RETRY_BACKOFF_SECONDS = 3  # wait grows: 3s, 6s, 9s between attempts
 
 OPTION_TYPE_EMOJI = {"CE": "🟢", "PE": "🔴"}
 MONEYNESS_EMOJI = {"OTM": "🅾️", "ITM": "🅼"}
+TREND_UP_LABEL = "🟢🔺 UP"
+TREND_DOWN_LABEL = "🔴🔻 DOWN"
 
 
 def send_telegram_message(text: str):
@@ -52,7 +54,7 @@ def send_telegram_message(text: str):
 def format_spot_trend(commodity_key: str, day_open_spot: float, current_spot: float) -> str:
     move = current_spot - day_open_spot
     pct = (move / day_open_spot * 100) if day_open_spot else 0
-    direction = "📈 UP" if move >= 0 else "📉 DOWN"
+    direction = TREND_UP_LABEL if move >= 0 else TREND_DOWN_LABEL
     return f"Spot Trend: {direction} ₹{abs(move):.2f} ({abs(pct):.2f}%)"
 
 
@@ -63,12 +65,14 @@ def format_strike_alert(commodity_key: str, symbol: str, option_type: str, money
     opt_emoji = OPTION_TYPE_EMOJI.get(option_type, "")
     money_emoji = MONEYNESS_EMOJI.get(moneyness, "")
     threshold = config.COMMODITIES[commodity_key]["min_move_rupees"]
+    premium_direction = TREND_UP_LABEL if current_premium >= day_open_premium else TREND_DOWN_LABEL
 
     return (
         f"🚨 <b>Premium Spike Alert</b>\n"
         f"Commodity: {commodity_emoji} {commodity_key}\n"
         f"Contract: 📅 MONTHLY\n"
         f"Strike: {strike:g} {opt_emoji} {option_type} ({money_emoji} {moneyness})\n"
+        f"Premium Trend: {premium_direction}\n"
         f"{format_spot_trend(commodity_key, day_open_spot, current_spot)}\n"
         f"Opening Premium: ₹{day_open_premium:.2f}\n"
         f"Current Premium: ₹{current_premium:.2f}\n"
@@ -85,4 +89,3 @@ def format_volume_alert(commodity_key: str, spike: dict) -> str:
         f"({spike['ratio']}x)\n"
         f"Direction: {spike['direction']}\n"
     )
-  
