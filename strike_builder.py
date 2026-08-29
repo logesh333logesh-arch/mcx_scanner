@@ -38,19 +38,27 @@ def load_instrument_master(path: str = config.INSTRUMENT_MASTER_PATH) -> List[di
         return list(csv.DictReader(f))
 
 
-def nearest_expiry(rows: List[dict], instrument_master_name: str, min_strikes: int = 10) -> str:
+def nearest_expiry(rows: List[dict], instrument_master_name: str, min_strikes: int = 10,
+                    min_days_out: int = 5) -> str:
     """Picks the nearest upcoming monthly expiry for a given commodity's
     instrument-master name (e.g. 'CRUDE OIL', not 'CRUDEOIL').
-    Skips expiries with fewer than min_strikes contracts listed — this
-    happens when a front-month contract is 1-2 days from expiry and most
-    of its strike chain has already gone illiquid/delisted, which would
-    otherwise get wrongly picked as "nearest"."""
+    Skips expiries with fewer than min_strikes contracts listed, AND skips
+    any expiry less than min_days_out days away — a contract can still be
+    "listed" with 10+ strikes just 1-2 days before expiry, but trading/
+    quotes have effectively stopped (real-world observed: Gold/Silver
+    contracts 2 days from expiry returned zero quote data for every
+    single strike), so a pure listing-count check isn't enough."""
     from collections import Counter
+    from datetime import date as _date
     counts = Counter(
         r["expiry"] for r in rows
         if r.get("name", "").upper() == instrument_master_name.upper() and r.get("expiry")
     )
-    expiries = sorted(e for e, c in counts.items() if c >= min_strikes)
+    today = _date.today()
+    expiries = sorted(
+        e for e, c in counts.items()
+        if c >= min_strikes and (_date.fromisoformat(e) - today).days >= min_days_out
+    )
     if not expiries:
         raise ValueError(f"No expiries with sufficient strikes found for {instrument_master_name}")
     return expiries[0]
@@ -134,4 +142,3 @@ def build_strikes(commodity_key: str, day_open_spot: float,
     for strike, r in pe_itm:
         result.append(OptionInstrument(r["instrument_key"], r["tradingsymbol"], strike, "PE", "ITM", expiry))
     return result
-                     
