@@ -17,7 +17,7 @@ TIMEOUT_SECONDS = 30
 RETRY_BACKOFF_SECONDS = 3  # wait grows: 3s, 6s, 9s between attempts
 
 OPTION_TYPE_EMOJI = {"CE": "🟢", "PE": "🔴"}
-MONEYNESS_EMOJI = {"OTM": "🅾️", "ITM": "🅼"}
+MONEYNESS_EMOJI = {"OTM": "🅾️", "ITM": "ℹ️"}
 
 
 def send_telegram_message(text: str):
@@ -52,7 +52,7 @@ def send_telegram_message(text: str):
 def format_spot_trend(commodity_key: str, day_open_spot: float, current_spot: float) -> str:
     move = current_spot - day_open_spot
     pct = (move / day_open_spot * 100) if day_open_spot else 0
-    direction = "📈 UP" if move >= 0 else "📉 DOWN"
+    direction = "💹 UP" if move >= 0 else "🔻 DOWN"
     return f"Spot Trend: {direction} ₹{abs(move):.2f} ({abs(pct):.2f}%)"
 
 
