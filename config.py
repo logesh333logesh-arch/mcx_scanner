@@ -18,7 +18,7 @@ COMMODITIES = {
         "instrument_master_name": "CRUDE OIL",  # Upstox instrument master uses a space for this one
         "tradingsymbol_prefix": "CRUDEOIL",     # standard lot (excludes CRUDEOILM mini — see exclude below)
         "tradingsymbol_exclude_prefix": "CRUDEOILM",
-        "min_move_rupees": 10,     # min premium move from day-open strike price to trigger alert
+        "min_move_rupees": 25,     # min premium move from day-open strike price to trigger alert
         "emoji": "🛢️",
     },
     "NATURALGAS": {
@@ -34,7 +34,7 @@ COMMODITIES = {
         "instrument_master_name": "GOLD",
         "tradingsymbol_prefix": "GOLDM",         # Mini — per Logesh's confirmation
         "tradingsymbol_exclude_prefix": None,
-        "min_move_rupees": 20,
+        "min_move_rupees": 30,
         "emoji": "🥇",
     },
     "SILVER": {
@@ -42,15 +42,15 @@ COMMODITIES = {
         "instrument_master_name": "SILVER",
         "tradingsymbol_prefix": "SILVER",       # standard lot (excludes SILVERM mini — see exclude below)
         "tradingsymbol_exclude_prefix": "SILVERM",
-        "min_move_rupees": 15,
+        "min_move_rupees": 25,
         "emoji": "🥈",
     },
 }
 
 # Strikes tracked per side of the day's opening spot price
-STRIKES_PER_SIDE_OTM = 10   # 10 OTM CE + 10 OTM PE
+STRIKES_PER_SIDE_OTM = 5   # 5 OTM CE + 5 OTM PE
 STRIKES_PER_SIDE_ITM = 5    # + 5 ITM CE + 5 ITM PE
-# -> 15 CE + 15 PE = 30 strikes tracked per commodity
+# -> 10 CE + 10 PE = 20 strikes tracked per commodity
 
 # MCX options are monthly expiry only (no weekly)
 EXPIRY_CYCLE = "monthly"
