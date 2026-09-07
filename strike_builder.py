@@ -2,9 +2,9 @@
 Strike Builder
 ==============
 Given the day's OPENING spot price of a commodity, picks:
-    - 10 OTM CE strikes (above spot) + 5 ITM CE strikes (below spot)
-    - 10 OTM PE strikes (below spot) + 5 ITM PE strikes (above spot)
-    -> 15 CE + 15 PE = 30 strikes per commodity
+    - 5 OTM CE strikes (above spot) + 5 ITM CE strikes (below spot)
+    - 5 OTM PE strikes (below spot) + 5 ITM PE strikes (above spot)
+    -> 10 CE + 10 PE = 20 strikes per commodity
 
 Strikes are matched against the actual Upstox instrument master CSV
 (not just computed from strike_step) so we only ever alert on strikes
@@ -67,7 +67,7 @@ def nearest_expiry(rows: List[dict], instrument_master_name: str, min_strikes: i
 def build_strikes(commodity_key: str, day_open_spot: float,
                    instrument_rows: List[dict]) -> List[OptionInstrument]:
     """
-    Returns 15 CE (10 OTM + 5 ITM) + 15 PE (10 OTM + 5 ITM) OptionInstrument
+    Returns 10 CE (5 OTM + 5 ITM) + 10 PE (5 OTM + 5 ITM) OptionInstrument
     objects for the nearest monthly expiry, centered on day_open_spot.
 
     Moneyness convention:
@@ -116,7 +116,7 @@ def build_strikes(commodity_key: str, day_open_spot: float,
             elif strike > day_open_spot:
                 puts_above.append((strike, r))
 
-    # CE OTM: 10 closest strikes ABOVE spot (ascending = closest first)
+    # CE OTM: 5 closest strikes ABOVE spot (ascending = closest first)
     calls_above.sort(key=lambda x: x[0])
     ce_otm = calls_above[:config.STRIKES_PER_SIDE_OTM]
 
@@ -124,7 +124,7 @@ def build_strikes(commodity_key: str, day_open_spot: float,
     calls_below.sort(key=lambda x: x[0], reverse=True)
     ce_itm = calls_below[:config.STRIKES_PER_SIDE_ITM]
 
-    # PE OTM: 10 closest strikes BELOW spot (descending = closest first)
+    # PE OTM: 5 closest strikes BELOW spot (descending = closest first)
     puts_below.sort(key=lambda x: x[0], reverse=True)
     pe_otm = puts_below[:config.STRIKES_PER_SIDE_OTM]
 
