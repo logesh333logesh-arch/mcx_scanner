@@ -44,7 +44,7 @@ echo "========================================"
 echo "[3.5/5] Updating Scanner-2's GitHub secret (UPSTOX_ACCESS_TOKEN)..."
 echo "========================================"
 gh secret set UPSTOX_ACCESS_TOKEN --repo logesh333logesh-arch/scanner-2-upstox < "$SCANNER4_DIR/token.txt"
-echo "[OK] Scanner-2's UPSTOX_ACCESS_TOKEN secret updated with today's fresh token."
+echo "[OK] Scanner-2's UPSTOX_ACCESS_TOKEN secret updated."
 
 echo ""
 echo "========================================"
@@ -59,8 +59,11 @@ echo "[OK] token.txt pushed to mcx_scanner repo."
 
 echo ""
 echo "========================================"
-echo "[5/5] Running one immediate local MCX scan..."
+echo "[5/5] Refreshing instrument master + running local MCX scan..."
 echo "========================================"
+mkdir -p instruments
+curl -s -o instruments/mcx_instruments.csv.gz https://assets.upstox.com/market-quote/instruments/exchange/MCX.csv.gz
+gunzip -f instruments/mcx_instruments.csv.gz
 python mcx_scanner_main.py
 
 echo ""
