@@ -34,9 +34,11 @@ SCANNER4_DIR=~/Scanner-4
 MCX_DIR=~/mcx_scanner
 SCANNER2_DIR=~/scanner-2-upstox
 SCANNER2_REPO="https://github.com/logesh333logesh-arch/scanner-2-upstox.git"
+SCANNER5_DIR=~/scanner5_project/scanner5
+SCANNER5_REPO="https://github.com/logesh333logesh-arch/scanner5-opsan-strategy.git"
 
 echo "========================================"
-echo "[1/5] Running Scanner-4 (handles Upstox login + daily baseline)..."
+echo "[1/6] Running Scanner-4 (handles Upstox login + daily baseline)..."
 echo "========================================"
 cd "$SCANNER4_DIR"
 ./run_scanner4.sh
@@ -47,14 +49,14 @@ sleep 10
 
 echo ""
 echo "========================================"
-echo "[2/5] Copying fresh token to mcx_scanner..."
+echo "[2/6] Copying fresh token to mcx_scanner..."
 echo "========================================"
 cp "$SCANNER4_DIR/token.txt" "$MCX_DIR/token.txt"
 echo "[OK] token.txt copied to mcx_scanner."
 
 echo ""
 echo "========================================"
-echo "[3/5] Pushing fresh token to Scanner-2's repo..."
+echo "[3/6] Pushing fresh token to Scanner-2's repo..."
 echo "========================================"
 if [ ! -d "$SCANNER2_DIR" ]; then
     echo "[INFO] $SCANNER2_DIR not found, cloning..."
@@ -70,7 +72,7 @@ echo "[OK] token.txt pushed to Scanner-2 repo — its GitHub Actions runs will u
 
 echo ""
 echo "========================================"
-echo "[3.5/5] Updating Scanner-2's GitHub secret (UPSTOX_ACCESS_TOKEN)..."
+echo "[3.5/6] Updating Scanner-2's GitHub secret (UPSTOX_ACCESS_TOKEN)..."
 echo "========================================"
 # Scanner-2's scanner.py reads the token from a GitHub Actions SECRET
 # (not from token.txt), so pushing the file alone isn't enough — the
