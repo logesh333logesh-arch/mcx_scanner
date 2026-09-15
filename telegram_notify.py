@@ -1,10 +1,7 @@
 """
 Telegram Notifier
 ==================
-Simple premium-spike alert format (Scanner-2 style) — no CPR.
-Bot token + chat id from env vars (set as GitHub Actions secrets),
-requests.post to sendMessage — with retries + backoff since
-api.telegram.org occasionally times out on mobile/flaky connections.
+Premium-spike alert format — rolling reference (not fixed day-open).
 """
 
 import os
@@ -14,7 +11,7 @@ import config
 
 MAX_ATTEMPTS = 4
 TIMEOUT_SECONDS = 30
-RETRY_BACKOFF_SECONDS = 3  # wait grows: 3s, 6s, 9s between attempts
+RETRY_BACKOFF_SECONDS = 3
 
 OPTION_TYPE_EMOJI = {"CE": "🟢", "PE": "🔴"}
 MONEYNESS_EMOJI = {"OTM": "🅾️", "ITM": "🅼"}
@@ -55,17 +52,18 @@ def format_spot_trend(commodity_key: str, day_open_spot: float, current_spot: fl
     move = current_spot - day_open_spot
     pct = (move / day_open_spot * 100) if day_open_spot else 0
     direction = TREND_UP_LABEL if move >= 0 else TREND_DOWN_LABEL
-    return f"Spot Trend: {direction} ₹{abs(move):.2f} ({abs(pct):.2f}%)"
+    return f"Spot Trend (vs day-open): {direction} ₹{abs(move):.2f} ({abs(pct):.2f}%)"
 
 
 def format_strike_alert(commodity_key: str, symbol: str, option_type: str, moneyness: str,
-                         strike: float, day_open_premium: float, current_premium: float,
-                         move: float, day_open_spot: float, current_spot: float) -> str:
+                         strike: float, reference_premium: float, reference_age_minutes: float,
+                         current_premium: float, move: float,
+                         day_open_spot: float, current_spot: float) -> str:
     commodity_emoji = config.COMMODITIES[commodity_key]["emoji"]
     opt_emoji = OPTION_TYPE_EMOJI.get(option_type, "")
     money_emoji = MONEYNESS_EMOJI.get(moneyness, "")
     threshold = config.COMMODITIES[commodity_key]["min_move_rupees"]
-    premium_direction = TREND_UP_LABEL if current_premium >= day_open_premium else TREND_DOWN_LABEL
+    premium_direction = TREND_UP_LABEL if current_premium >= reference_premium else TREND_DOWN_LABEL
 
     return (
         f"🚨 <b>Premium Spike Alert</b>\n"
@@ -74,7 +72,7 @@ def format_strike_alert(commodity_key: str, symbol: str, option_type: str, money
         f"Strike: {strike:g} {opt_emoji} {option_type} ({money_emoji} {moneyness})\n"
         f"Premium Trend: {premium_direction}\n"
         f"{format_spot_trend(commodity_key, day_open_spot, current_spot)}\n"
-        f"Opening Premium: ₹{day_open_premium:.2f}\n"
+        f"Reference Premium ({reference_age_minutes:.0f}m ago): ₹{reference_premium:.2f}\n"
         f"Current Premium: ₹{current_premium:.2f}\n"
         f"Spike: ₹{move:.2f} (Threshold: ₹{threshold})\n"
     )
